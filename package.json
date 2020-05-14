@@ -1,0 +1,17 @@
+{
+  "name": "node-gstreamer-examples",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "gstreamer"
+  ],
+  "author": "Nico Strasdat <nstrasdat@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "node-gtk": "git://github.com/wotzlaff/node-gtk"
+  }
+}
