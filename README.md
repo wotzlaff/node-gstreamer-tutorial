@@ -6,6 +6,10 @@ TODO
 
 ## Installation
 TODO
+(Until the problem in the main repo is fixed, we use our own version of `node-gtk`.)
+```
+npm install --build-from-source
+```
 
 ## Usage
 TODO
