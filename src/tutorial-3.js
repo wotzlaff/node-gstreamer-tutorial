@@ -67,5 +67,5 @@ if (ret === Gst.State.CHANGE_FAILURE) {
 // pipeline.setState(Gst.State.NULL)
 // pipeline.unref()
 
-// kepp alive
+// keep alive
 setInterval(() => {}, 5000)
