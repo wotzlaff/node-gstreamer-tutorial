@@ -12,6 +12,6 @@
   "author": "Nico Strasdat <nstrasdat@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "node-gtk": "git://github.com/wotzlaff/node-gtk"
+    "node-gtk": "^0.4.0"
   }
 }
