@@ -8,7 +8,38 @@ const pipeline = Gst.parseLaunch('playbin uri=https://www.freedesktop.org/softwa
 pipeline.setState(Gst.State.PLAYING)
 
 const bus = pipeline.getBus()
-const msg =  bus.timedPopFiltered(Gst.CLOCK_TIME_NONE, Gst.MessageType.ERROR | Gst.MessageType.EOS)
+
+let done = false
+while (!done) {
+  const msg = bus.timedPopFiltered(Gst.CLOCK_TIME_NONE, Gst.MessageType.ERROR | Gst.MessageType.EOS | Gst.MessageType.STATE_CHANGED)
+  if (msg) {
+    switch (msg.type) {
+      case Gst.MessageType.ERROR:
+        console.log('Got error')
+        // Something like this should work to obtain details:
+        // const [err, debug] = msg.parseError()
+        // console.error(`Error received from element ${msg.src}: ${msg.message}`)
+        // err.clear()
+        done = true
+        break
+      case Gst.MessageType.EOS:
+        console.log('End-Of-Stream reached.')
+        done = true
+      case Gst.MessageType.STATE_CHANGED:
+        const msgSrc = msg.src.getName()
+        const [oldState, newState, pendingState] = msg.parseStateChanged()
+        console.log(`State of ${msgSrc} changed: ${Gst.Element.stateGetName(oldState)} -> ${Gst.Element.stateGetName(newState)}.`)
+        break
+      default:
+        console.error('Unexpected message received.')
+        break
+    }
+    // We should probably do this, but unref is not yet available:
+    // msg.unref()
+  } else {
+    console.log('Timeout?')
+  }
+}
 
 // We should probably do this, but unref is not yet available:
 // if (msg !== undefined) {
