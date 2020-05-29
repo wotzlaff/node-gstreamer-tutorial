@@ -73,8 +73,8 @@ function main() {
   }
 
   bus.unref()
-  pipeline.setState(Gst.State.NULL)
-  pipeline.unref()
+  playbin.setState(Gst.State.NULL)
+  playbin.unref()
 }
 
 function handleMessage(msg) {
