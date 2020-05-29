@@ -17,40 +17,43 @@ Gst.init()
 const CHUNK_SIZE = 1024
 const SAMPLE_RATE = 44100
 
+let isPushing = false
 let sourceId = 0
 let numSamples = 0
 let data = {
   appsrc: undefined,
-  a: 0, b: 0,
-  c: 0, d: 0,
+  a: 0, b: 1,
+  c: 0, d: 1,
 }
 
 function pushData() {
-  const buffer = Gst.Buffer.newAllocate(null, CHUNK_SIZE)
-  buffer.dts = Gst.utilUint64Scale(numSamples, Gst.SECOND, SAMPLE_RATE)
-  buffer.duration = Gst.utilUint64Scale(CHUNK_SIZE / 2, Gst.SECOND, SAMPLE_RATE)
+  if (!isPushing) return
 
-  const [_, map] = buffer.map(Gst.MapFlags.WRITE)
+  const buf = Buffer.alloc(CHUNK_SIZE, 0)
   data.c += data.d
   data.d -= data.c / 1000
   const freq = 1100 + 1000 * data.d
   for (let i = 0; i < CHUNK_SIZE / 2; ++i) {
     data.a += data.b
     data.b -= data.a / freq
-    // TODO: write data
+    buf.writeUInt16LE((500 * data.a) & 0xffff, i * 2)
   }
-  buffer.unmap(map)
+  // Create Gst.Buffer
+  const buffer = Gst.Buffer.newWrapped(buf)
+  buffer.dts = Gst.utilUint64Scale(numSamples, Gst.SECOND, SAMPLE_RATE)
+  buffer.duration = Gst.utilUint64Scale(CHUNK_SIZE / 2, Gst.SECOND, SAMPLE_RATE)
+
   // Push the buffer into the appsrc
-  console.log('Pushing?')
-  const ret = data.appsrc.emitByName('push-buffer', buffer)
+  const ret = data.appsrc.emit('push-buffer', buffer)
 
   // Free the buffer now that we are done with it
   // buffer.unref()
+
   if (ret !== Gst.FlowReturn.OK) {
     // We got some error, stop sending data
-    return false
+    isPushing = false
   }
-  return true
+  setImmediate(pushData)
 }
 
 function main() {
@@ -80,7 +83,7 @@ function main() {
   // Configure wavescope
   // TODO: use non-internal setters?
   gi._c.ObjectPropertySetter(visual, 'shader', 0)
-  gi._c.ObjectPropertySetter(visual, 'style', 1)
+  gi._c.ObjectPropertySetter(visual, 'style', 0)
 
   // Configure appsrc
   const audioInfo = new GstAudio.AudioInfo()
@@ -89,16 +92,16 @@ function main() {
   gi._c.ObjectPropertySetter(appsrc, 'caps', audioCaps)
   gi._c.ObjectPropertySetter(appsrc, 'format', Gst.Format.TIME)
   appsrc.on('need-data', size => {
-    if (sourceId === 0) {
+    if (!isPushing) {
       console.log('Start feeding.')
-      GLib.idleAdd(GLib.PRIORITY_DEFAULT_IDLE, pushData)
+      isPushing = true
+      setImmediate(pushData)
     }
   })
   appsrc.on('enough-data', () => {
-    if (sourceId !== 0) {
+    if (isPushing) {
       console.log('Stop feeding.')
-      GLib.Source.remove(sourceId)
-      sourceId = 0
+      isPushing = false
     }
   })
   
@@ -106,7 +109,13 @@ function main() {
   gi._c.ObjectPropertySetter(appsink, 'emit-signals', true)
   gi._c.ObjectPropertySetter(appsink, 'caps', audioCaps)
   appsink.on('new-sample', () => {
-
+    const sample = appsink.emit('pull-sample')
+    if (sample) {
+      process.stdout.write('*')
+      // sample.unref()
+      return Gst.FlowReturn.OK
+    }
+    return Gst.FlowReturn.ERROR
   })
   // audioCaps.unref()
 
@@ -182,11 +191,11 @@ function main() {
   pipeline.setState(Gst.State.PLAYING)
 
   // Create a GLib Main Loop and set it to run
-  const mainLoop = new GLib.MainLoop(null, false)
-  mainLoop.run()
+  // const mainLoop = new GLib.MainLoop(null, false)
+  // mainLoop.run()
   // TODO: do not block the main loop - workaround: setInterval?
-  // setInterval(() => {}, 1000)
-  // return
+  setInterval(() => {}, 1000)
+  return
 
   // Release the request pads from the Tee, and unref them
   tee.releaseRequestPad(teeAudioPad)
