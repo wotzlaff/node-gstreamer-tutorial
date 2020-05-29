@@ -5,15 +5,19 @@
 /// <reference path="@types/node-gtk/Gtk-3.0.d.ts" />
 
 const gi = require('node-gtk')
-// const Gst = gi.require('Gst', '1.0')
-// const GLib = gi.require('GLib', '2.0')
-// const Gtk = gi.require('Gtk', '3.0')
+const Gst = gi.require('Gst', '1.0')
+const GLib = gi.require('GLib', '2.0')
+const Gtk = gi.require('Gtk', '3.0')
 gi.startLoop()
 
 // Initialize GTK
 Gtk.init()
 // Initialize GStreamer
 Gst.init()
+
+function update() {
+  
+}
 
 
 function main() {
@@ -30,16 +34,33 @@ function main() {
   gi._c.ObjectPropertySetter(playbin, 'uri', 'https://www.freedesktop.org/software/gstreamer-sdk/data/media/sintel_trailer-480p.webm')
 
   // Connect to interesting signals in playbin
-  playbin.on('video-tags-changed', () => {})
-  playbin.on('audio-tags-changed', () => {})
-  playbin.on('text-tags-changed', () => {})
+  playbin.on('video-tags-changed', () => {
+    console.log('video-tags-changed')
+    update()
+  })
+  playbin.on('audio-tags-changed', () => {
+    console.log('audio-tags-changed')
+    update()
+  })
+  playbin.on('text-tags-changed', () => {
+    console.log('text-tags-changed')
+    update()
+  })
 
   // Instruct the bus to emit signals for each received message, and connect to the interesting signals
   const bus = playbin.getBus()
-  bus.on('message::error', () => {})
-  bus.on('message::eos', () => {})
-  bus.on('message::state-changed', () => {})
-  bus.on('message::application', () => {})
+  bus.on('message::error', () => {
+    console.log('message::error')
+  })
+  bus.on('message::eos', () => {
+    console.log('message::eos')
+  })
+  bus.on('message::state-changed', () => {
+    console.log('message::state-changed')
+  })
+  bus.on('message::application', () => {
+    console.log('message::application')
+  })
   bus.unref()
 
   // Start playing
@@ -50,7 +71,7 @@ function main() {
   }
 
   // Register a function that GLib will call every second
-  GLib.timeoutAddSeconds(GLib.PRIORITY_DEFAULT, 1, () => {
+  GLib.timeoutAddSeconds(0, 1, () => {
     console.log('tick')
     return true
   })
