@@ -1,4 +1,4 @@
-// translation of https://gstreamer.freedesktop.org/documentation/tutorials/basic/short-cutting-the-pipeline.html
+// translation of https://gstreamer.freedesktop.org/documentation/tutorials/basic/media-information-gathering.html
 
 const gi = require('node-gtk')
 const Gst = gi.require('Gst')
