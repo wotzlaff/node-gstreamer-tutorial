@@ -62,6 +62,23 @@ if (ret === Gst.State.CHANGE_FAILURE) {
   throw new Error('Unable to set the pipelne to the playing state.')
 }
 
+// let terminate = false
+// const bus = pipeline.getBus()
+// while (!terminate) {
+//   const msg = bus.timedPopFiltered(Gst.CLOCK_TIME_NONE, Gst.MessageType.ERROR | Gst.MessageType.EOS)
+//   switch (msg.type) {
+//     case Gst.MessageType.ERROR:
+//       console.log('Got error.')
+//       // TOOD: parse error
+//       terminate = true
+//       break
+//     case Gst.MessageType.EOS:
+//       console.log('End-Of-Stream reached.')
+//       terminate = true
+//       break
+//   }
+// }
+
 // TODO: do this finally
 // bus.unref()
 // pipeline.setState(Gst.State.NULL)
