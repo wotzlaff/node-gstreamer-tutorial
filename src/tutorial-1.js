@@ -34,18 +34,10 @@ while (!done) {
         console.error('Unexpected message received.')
         break
     }
-    // We should probably do this, but unref is not yet available:
-    // msg.unref()
   } else {
     console.log('Timeout?')
   }
 }
 
-// We should probably do this, but unref is not yet available:
-// if (msg !== undefined) {
-//   msg.unref()
-// }
 
-bus.unref()
 pipeline.setState(Gst.State.NULL)
-pipeline.unref()

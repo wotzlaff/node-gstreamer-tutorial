@@ -46,9 +46,6 @@ function pushData() {
   // Push the buffer into the appsrc
   const ret = data.appsrc.emit('push-buffer', buffer)
 
-  // Free the buffer now that we are done with it
-  // buffer.unref()
-
   if (ret !== Gst.FlowReturn.OK) {
     // We got some error, stop sending data
     isPushing = false
@@ -112,12 +109,10 @@ function main() {
     const sample = appsink.emit('pull-sample')
     if (sample) {
       process.stdout.write('*')
-      // sample.unref()
       return Gst.FlowReturn.OK
     }
     return Gst.FlowReturn.ERROR
   })
-  // audioCaps.unref()
 
   pipeline.add(appsrc)
   pipeline.add(tee)
@@ -146,7 +141,6 @@ function main() {
   )
   if (!isLinked) {
     console.error('Elements could not be linked.')
-    pipeline.unref()
     return
   }
 
@@ -170,12 +164,8 @@ function main() {
   )
   if (!padsLinked) {
     console.error('Tee could not be linked.')
-    pipeline.unref()
     return
   }
-  queueAudioPad.unref()
-  queueVideoPad.unref()
-  teeAppPad.unref()
 
   // Instruct the bus to emit signals for each received message, and connect to the interesting signals
   const bus = pipeline.getBus()
@@ -185,7 +175,6 @@ function main() {
     console.error('Got error')
     // mainLoop.quit()
   })
-  bus.unref()
 
   // Start playing the pipeline
   pipeline.setState(Gst.State.PLAYING)
@@ -197,17 +186,13 @@ function main() {
   setInterval(() => {}, 1000)
   return
 
-  // Release the request pads from the Tee, and unref them
+  // Release the request pads from the tee
   tee.releaseRequestPad(teeAudioPad)
   tee.releaseRequestPad(teeVideoPad)
   tee.releaseRequestPad(teeAppPad)
-  teeAudioPad.unref()
-  teeVideoPad.unref()
-  teeAppPad.unref()
 
   // Free resources
   pipeline.setState(Gst.State.NULL)
-  pipeline.unref()
 }
 
 main()

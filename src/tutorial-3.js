@@ -20,7 +20,6 @@ pipeline.add(resample)
 pipeline.add(sink)
 
 if (!convert.link(resample) || !resample.link(sink)) {
-  pipeline.unref()
   throw new Error('Elements could not be linked.')
 }
 
@@ -30,13 +29,9 @@ src.on('pad-added', pad => {
   console.log(`Received new pad '${pad.getName()}' from '${src.getName()}':`)
 
   const sinkPad = convert.getStaticPad('sink')
-  function cleanup() {
-    if (sinkPad) sinkPad.unref()
-  }
 
   if (sinkPad.isLinked()) {
     console.log('We are already linked. Ignoring.')
-    cleanup()
     return
   }
   const caps = pad.getCurrentCaps()
@@ -44,7 +39,6 @@ src.on('pad-added', pad => {
   const type = struct.getName()
   if (!type.startsWith('audio/x-raw')) {
     console.log(`It has type '${type}' which is not raw audio. Ignoring.`)
-    cleanup()
     return
   }
 
@@ -53,12 +47,10 @@ src.on('pad-added', pad => {
   } else {
     console.log(`Link succeeded (type '${type}').`)
   }
-  cleanup()
 })
 
 const ret = pipeline.setState(Gst.State.PLAYING)
 if (ret === Gst.State.CHANGE_FAILURE) {
-  pipeline.unref()
   throw new Error('Unable to set the pipelne to the playing state.')
 }
 
@@ -79,10 +71,7 @@ if (ret === Gst.State.CHANGE_FAILURE) {
 //   }
 // }
 
-// TODO: do this finally
-// bus.unref()
 // pipeline.setState(Gst.State.NULL)
-// pipeline.unref()
 
 // keep alive
 setInterval(() => {}, 5000)

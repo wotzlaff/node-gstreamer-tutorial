@@ -61,12 +61,10 @@ function main() {
   bus.on('message::application', () => {
     console.log('message::application')
   })
-  bus.unref()
 
   // Start playing
   if (playbin.setState(Gst.State.PLAYING) === Gst.StateChangeReturn.FAILURE) {
     console.error('Unable to set the pipeline to the playing state.')
-    playbin.unref()
     return
   }
 
@@ -81,7 +79,6 @@ function main() {
 
   // Free resources
   playbin.setState(Gst.State.NULL)
-  playbin.unref()
 }
 
 main()

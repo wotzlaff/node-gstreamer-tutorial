@@ -31,7 +31,6 @@ function main() {
   // Start playing
   if (playbin.setState(Gst.State.PLAYING) === Gst.State.CHANGE_FAILURE) {
     console.error('Unable to set the pipeline to the playing state.')
-    playbin.unref()
     return
   }
 
@@ -72,9 +71,7 @@ function main() {
     }
   }
 
-  bus.unref()
   playbin.setState(Gst.State.NULL)
-  playbin.unref()
 }
 
 function handleMessage(msg) {
@@ -108,8 +105,6 @@ function handleMessage(msg) {
               console.log('Seeking is DISABLED for this stream.')
             }
           }
-          // We should do this, but unref is not available:
-          // query.unref()
         }
       }
       break

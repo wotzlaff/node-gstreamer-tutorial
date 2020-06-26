@@ -14,7 +14,6 @@ if (!pipeline || !src || !sink) {
 pipeline.add(src)
 pipeline.add(sink)
 if (!src.link(sink)) {
-  pipeline.unref()
   throw new Error('Elements could not be linked.')
 }
 
@@ -23,7 +22,6 @@ src.pattern = 0
 
 const ret = pipeline.setState(Gst.State.PLAYING)
 if (ret === Gst.State.CHANGE_FAILURE) {
-  pipeline.unref()
   throw new Error('Unable to set the pipelne to the playing state.')
 }
 
@@ -41,10 +39,6 @@ if (msg) {
   } else {
     console.error('Unexpected message received.')
   }
-  // We should probably do this, but unref is not yet available:
-  // msg.unref()
 }
 
-bus.unref()
 pipeline.setState(Gst.State.NULL)
-pipeline.unref()

@@ -50,7 +50,6 @@ function main() {
   // Link all elements that can be automatically linked because they have "Always" pads
   if (!asrc.link(tee) || !aqueue.link(aconvert) || !aconvert.link(aresample) || !aresample.link(asink) || !vqueue.link(visual) || !visual.link(vconvert) || !vconvert.link(vsink)) {
     console.error('Elements could not be linked.')
-    pipeline.unref()
     return
   }
 
@@ -63,11 +62,8 @@ function main() {
   const queueVideoPad = vqueue.getStaticPad('sink')
   if (teeAudioPad.link(queueAudioPad) !== Gst.PadLinkReturn.OK || teeVideoPad.link(queueVideoPad) !== Gst.PadLinkReturn.OK) {
     console.error('Tee could not be linked.')
-    pipeline.unref()
     return
   }
-  queueAudioPad.unref()
-  queueVideoPad.unref()
 
   // Start playing the pipeline
   pipeline.setState(Gst.State.PLAYING)
@@ -76,17 +72,11 @@ function main() {
   const bus = pipeline.getBus()
   const msg = bus.timedPopFiltered(Gst.CLOCK_TIME_NONE, Gst.MessageType.ERROR | Gst.MessageType.EOS)
 
-  // Release the request pads from the Tee, and unref them
+  // Release the request pads from the tee
   tee.releaseRequestPad(teeAudioPad)
   tee.releaseRequestPad(teeVideoPad)
-  teeAudioPad.unref()
-  teeVideoPad.unref()
 
-  // Free resources
-  // if (msg) msg.unref()
-  bus.unref()
   pipeline.setState(Gst.State.NULL)
-  pipeline.unref()
 }
 
 main()

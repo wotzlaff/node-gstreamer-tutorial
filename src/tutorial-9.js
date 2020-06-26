@@ -33,7 +33,6 @@ function main() {
   
   if (discoverer.discoverUriAsync(uri)) {
     console.error(`Failed to start discovering URI '${uri}'\n`);
-    discoverer.unref()
     return
   }
 
@@ -43,10 +42,6 @@ function main() {
 
   // Stop the discoverer process
   discoverer.stop()
-
-  // Free resources
-  discoverer.unref()
-  loop.unref()
 }
 
 main()

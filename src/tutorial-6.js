@@ -40,7 +40,6 @@ function main() {
   pipeline.add(sink)
   if (!src.link(sink)) {
     console.error('Elements could not be linked.')
-    pipeline.unref()
     return
   }
 
@@ -82,11 +81,7 @@ function main() {
     }
   }
 
-  bus.unref()
   pipeline.setState(Gst.State.NULL)
-  pipeline.unref()
-  srcFactory.unref()
-  sinkFactory.unref()
 }
 
 function printPadTemplateInformation(factory) {
@@ -129,14 +124,12 @@ function printPadTemplateInformation(factory) {
     //   console.log('    Capabilities:')
     //   const caps = stateCaps.get()
     //   printCaps(caps, '      ')
-    //   // caps.unref()
     // }
 
     // Instead we're doing this:
     const caps = template.getCaps()
     console.log('    Capabilities:')
     printCaps(caps, '      ')
-    // caps.unref()
     console.log('')
   }
 }
@@ -180,8 +173,6 @@ function printPadCapabilities(element, padName) {
   // Print and free
   console.log(`Caps for the ${padName} pad:`)
   printCaps(caps, '    ')
-  // caps.unref()
-  pad.unref()
 }
 
 main()

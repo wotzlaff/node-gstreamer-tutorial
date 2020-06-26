@@ -20,7 +20,6 @@ function main() {
 
   // Link elements
   if (!src.link(typefind)) {
-    pipeline.unref()
     console.error('Elements could not be linked.')
     return
   }
@@ -30,12 +29,10 @@ function main() {
     console.log(caps.toString())
 
     clearTimeout(timeout)
-    pipeline.unref()
   })
 
   const ret = pipeline.setState(Gst.State.PLAYING)
   if (ret === Gst.State.CHANGE_FAILURE) {
-    pipeline.unref()
     console.error('Unable to set the pipeline to the playing state.')
     return
   }
