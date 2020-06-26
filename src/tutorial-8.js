@@ -13,7 +13,6 @@ Gst.init()
 const CHUNK_SIZE = 1024
 const SAMPLE_RATE = 44100
 
-let isPushing = false
 let sourceId = 0
 let numSamples = 0
 let data = {
@@ -23,8 +22,6 @@ let data = {
 }
 
 function pushData() {
-  if (!isPushing) return
-
   const buf = Buffer.alloc(CHUNK_SIZE, 0)
   data.c += data.d
   data.d -= data.c / 1000
@@ -38,15 +35,16 @@ function pushData() {
   const buffer = Gst.Buffer.newWrapped(buf)
   buffer.dts = Gst.utilUint64Scale(numSamples, Gst.SECOND, SAMPLE_RATE)
   buffer.duration = Gst.utilUint64Scale(CHUNK_SIZE / 2, Gst.SECOND, SAMPLE_RATE)
+  numSamples += CHUNK_SIZE / 2
 
   // Push the buffer into the appsrc
   const ret = data.appsrc.emit('push-buffer', buffer)
 
   if (ret !== Gst.FlowReturn.OK) {
     // We got some error, stop sending data
-    isPushing = false
+    return false
   }
-  setImmediate(pushData)
+  return true
 }
 
 function main() {
@@ -82,20 +80,19 @@ function main() {
   const audioInfo = new GstAudio.AudioInfo()
   audioInfo.setFormat(GstAudio.AudioFormat.S16, SAMPLE_RATE, 1)
   const audioCaps = audioInfo.toCaps()
+  console.log(audioCaps.toString())
   gi._c.ObjectPropertySetter(appsrc, 'caps', audioCaps)
   gi._c.ObjectPropertySetter(appsrc, 'format', Gst.Format.TIME)
   appsrc.on('need-data', size => {
-    if (!isPushing) {
-      console.log('Start feeding.')
-      isPushing = true
-      setImmediate(pushData)
-    }
+    if (sourceId !== 0) return
+    console.log('Start feeding.')
+    sourceId = GLib.idleAdd(GLib.PRIORITY_DEFAULT_IDLE, pushData)
   })
   appsrc.on('enough-data', () => {
-    if (isPushing) {
-      console.log('Stop feeding.')
-      isPushing = false
-    }
+    if (sourceId === 0) return
+    console.log('Stop feeding.')
+    GLib.sourceRemove(sourceId)
+    sourceId = 0
   })
   
   // Configure appsink
@@ -165,26 +162,22 @@ function main() {
 
   // Instruct the bus to emit signals for each received message, and connect to the interesting signals
   const bus = pipeline.getBus()
-  // bus.addSignalWatch()
-  // bus.on('message::error', msg => {
-  //   // const [err, debugInfo] = msg.parseError()
-  //   console.error('Got error')
-  //   // mainLoop.quit()
-  // })
+  bus.addSignalWatch()
+  bus.on('message::error', msg => {
+    // const [err, debugInfo] = msg.parseError()
+    console.error('Got error')
+    loop.quit()
+    clearInterval(interval)
+  })
 
   // Start playing the pipeline
   pipeline.setState(Gst.State.PLAYING)
 
   // Create a GLib Main Loop and set it to run
-  const mainLoop = new GLib.MainLoop(null, false)
-  mainLoop._run()
-  // TODO: do not block the main loop - workaround: setInterval?
-
-  // Wait until error or EOS
-  // const bus = pipeline.getBus()
-  const msg = bus.timedPopFiltered(Gst.CLOCK_TIME_NONE, Gst.MessageType.ERROR | Gst.MessageType.EOS)
-  // setInterval(() => {}, 1000)
-  // return
+  // FIXME: workaround to keep js code running
+  const interval = setInterval(() => {}, 1000)
+  const loop = new GLib.MainLoop(null, false)
+  loop.run()
 
   // Release the request pads from the tee
   tee.releaseRequestPad(teeAudioPad)
