@@ -1,9 +1,5 @@
 // translation of https://gstreamer.freedesktop.org/documentation/tutorials/basic/short-cutting-the-pipeline.html
 
-/// <reference path="@types/node-gtk/Gst-1.0.d.ts" />
-/// <reference path="@types/node-gtk/GstAudio-1.0.d.ts" />
-/// <reference path="@types/node-gtk/GLib-2.0.d.ts" />
-
 const gi = require('node-gtk')
 const Gst = gi.require('Gst', '1.0')
 const GstAudio = gi.require('GstAudio', '1.0')
@@ -169,22 +165,26 @@ function main() {
 
   // Instruct the bus to emit signals for each received message, and connect to the interesting signals
   const bus = pipeline.getBus()
-  bus.addSignalWatch()
-  bus.on('message::error', msg => {
-    // const [err, debugInfo] = msg.parseError()
-    console.error('Got error')
-    // mainLoop.quit()
-  })
+  // bus.addSignalWatch()
+  // bus.on('message::error', msg => {
+  //   // const [err, debugInfo] = msg.parseError()
+  //   console.error('Got error')
+  //   // mainLoop.quit()
+  // })
 
   // Start playing the pipeline
   pipeline.setState(Gst.State.PLAYING)
 
   // Create a GLib Main Loop and set it to run
-  // const mainLoop = new GLib.MainLoop(null, false)
-  // mainLoop.run()
+  const mainLoop = new GLib.MainLoop(null, false)
+  mainLoop._run()
   // TODO: do not block the main loop - workaround: setInterval?
-  setInterval(() => {}, 1000)
-  return
+
+  // Wait until error or EOS
+  // const bus = pipeline.getBus()
+  const msg = bus.timedPopFiltered(Gst.CLOCK_TIME_NONE, Gst.MessageType.ERROR | Gst.MessageType.EOS)
+  // setInterval(() => {}, 1000)
+  // return
 
   // Release the request pads from the tee
   tee.releaseRequestPad(teeAudioPad)

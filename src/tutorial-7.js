@@ -1,7 +1,5 @@
 // translation of https://gstreamer.freedesktop.org/documentation/tutorials/basic/multithreading-and-pad-availability.html
 
-/// <reference path="@types/node-gtk/Gst-1.0.d.ts" />
-
 const gi = require('node-gtk')
 const Gst = gi.require('Gst', '1.0')
 gi.startLoop()

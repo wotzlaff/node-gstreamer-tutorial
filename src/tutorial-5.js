@@ -1,9 +1,5 @@
 // translation of https://gstreamer.freedesktop.org/documentation/tutorials/basic/toolkit-integration.html
 
-/// <reference path="@types/node-gtk/Gst-1.0.d.ts" />
-/// <reference path="@types/node-gtk/GLib-2.0.d.ts" />
-/// <reference path="@types/node-gtk/Gtk-3.0.d.ts" />
-
 const gi = require('node-gtk')
 const Gst = gi.require('Gst', '1.0')
 const GLib = gi.require('GLib', '2.0')
