@@ -17,8 +17,8 @@ if (!src.link(sink)) {
   throw new Error('Elements could not be linked.')
 }
 
-// this does not yet work properly...
-src.pattern = 0
+src.pattern = 21 // = pinwheel
+src.kt = 50
 
 const ret = pipeline.setState(Gst.State.PLAYING)
 if (ret === Gst.State.CHANGE_FAILURE) {
@@ -30,10 +30,8 @@ const msg = bus.timedPopFiltered(Gst.CLOCK_TIME_NONE, Gst.MessageType.ERROR | Gs
 if (msg) {
   if (msg.type === Gst.MessageType.ERROR) {
     console.log('Got error')
-    // Something like this should work to obtain details:
-    // const [err, debug] = msg.parseError()
-    // console.error(`Error received from element ${msg.src}: ${msg.message}`)
-    // err.clear()
+    const [err, debug] = msg.parseError()
+    console.error(`Error received from element ${msg.src}: ${err.message}`)
   } else if (msg.type === Gst.MessageType.EOS) {
     console.log('End-Of-Stream reached.')
   } else {
@@ -42,3 +40,4 @@ if (msg) {
 }
 
 pipeline.setState(Gst.State.NULL)
+
