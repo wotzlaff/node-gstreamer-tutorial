@@ -15,11 +15,8 @@ while (!done) {
   if (msg) {
     switch (msg.type) {
       case Gst.MessageType.ERROR:
-        console.log('Got error')
-        // Something like this should work to obtain details:
-        // const [err, debug] = msg.parseError()
-        // console.error(`Error received from element ${msg.src}: ${msg.message}`)
-        // err.clear()
+        const [err, debug] = msg.parseError()
+        console.error(`Error received from element ${msg.src}: ${err.message}`)
         done = true
         break
       case Gst.MessageType.EOS:
