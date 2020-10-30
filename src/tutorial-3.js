@@ -23,8 +23,8 @@ if (!convert.link(resample) || !resample.link(sink)) {
   throw new Error('Elements could not be linked.')
 }
 
-// src.uri = 'https://www.freedesktop.org/software/gstreamer-sdk/data/media/sintel_trailer-480p.webm'
-gi._c.ObjectPropertySetter(src, 'uri', 'https://www.freedesktop.org/software/gstreamer-sdk/data/media/sintel_trailer-480p.webm')
+src.uri = 'https://www.freedesktop.org/software/gstreamer-sdk/data/media/sintel_trailer-480p.webm'
+
 src.on('pad-added', pad => {
   console.log(`Received new pad '${pad.getName()}' from '${src.getName()}':`)
 
@@ -54,24 +54,22 @@ if (ret === Gst.State.CHANGE_FAILURE) {
   throw new Error('Unable to set the pipelne to the playing state.')
 }
 
-// let terminate = false
-// const bus = pipeline.getBus()
-// while (!terminate) {
-//   const msg = bus.timedPopFiltered(Gst.CLOCK_TIME_NONE, Gst.MessageType.ERROR | Gst.MessageType.EOS)
-//   switch (msg.type) {
-//     case Gst.MessageType.ERROR:
-//       console.log('Got error.')
-//       // TOOD: parse error
-//       terminate = true
-//       break
-//     case Gst.MessageType.EOS:
-//       console.log('End-Of-Stream reached.')
-//       terminate = true
-//       break
-//   }
-// }
+let terminate = false
+const bus = pipeline.getBus()
+while (!terminate) {
+  const msg = bus.timedPopFiltered(Gst.CLOCK_TIME_NONE, Gst.MessageType.ERROR | Gst.MessageType.EOS)
+  switch (msg.type) {
+    case Gst.MessageType.ERROR:
+      console.log('Got error.')
+      // TODO: parse error
+      terminate = true
+      break
+    case Gst.MessageType.EOS:
+      console.log('End-Of-Stream reached.')
+      terminate = true
+      break
+  }
+}
 
-// pipeline.setState(Gst.State.NULL)
+pipeline.setState(Gst.State.NULL)
 
-// keep alive
-setInterval(() => {}, 5000)
