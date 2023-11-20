@@ -1,6 +1,6 @@
 {
   "name": "node-gstreamer-examples",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -12,6 +12,6 @@
   "author": "Nico Strasdat <nstrasdat@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "node-gtk": "^0.5.0"
+    "node-gtk": "^0.12.0"
   }
 }

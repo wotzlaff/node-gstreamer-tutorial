@@ -17,11 +17,13 @@ let sourceId = 0
 let numSamples = 0
 let data = {
   appsrc: undefined,
-  a: 0, b: 1,
-  c: 0, d: 1,
+  a: 0,
+  b: 1,
+  c: 0,
+  d: 1
 }
 
-function pushData() {
+function pushData () {
   const buf = Buffer.alloc(CHUNK_SIZE, 0)
   data.c += data.d
   data.d -= data.c / 1000
@@ -47,9 +49,9 @@ function pushData() {
   return true
 }
 
-function main() {
+function main () {
   // Create the elements
-  const appsrc = data.appsrc = Gst.ElementFactory.make('appsrc')
+  const appsrc = (data.appsrc = Gst.ElementFactory.make('appsrc'))
   const tee = Gst.ElementFactory.make('tee')
   const aqueue = Gst.ElementFactory.make('queue', 'audio_queue')
   const aconvert1 = Gst.ElementFactory.make('audioconvert')
@@ -66,23 +68,37 @@ function main() {
   // Create the empty pipeline
   const pipeline = new Gst.Pipeline()
 
-  if (!appsrc || !tee || !aqueue || !aconvert1 || !aresample || !asink || !vqueue || !aconvert2 || !visual || !vconvert || !vsink || !appqueue || !appsink || !pipeline) {
+  if (
+    !appsrc ||
+    !tee ||
+    !aqueue ||
+    !aconvert1 ||
+    !aresample ||
+    !asink ||
+    !vqueue ||
+    !aconvert2 ||
+    !visual ||
+    !vconvert ||
+    !vsink ||
+    !appqueue ||
+    !appsink ||
+    !pipeline
+  ) {
     console.error('Not all elements could be created.')
     return
   }
 
   // Configure wavescope
-  // TODO: use non-internal setters?
-  gi._c.ObjectPropertySetter(visual, 'shader', 0)
-  gi._c.ObjectPropertySetter(visual, 'style', 0)
+  visual.shader = 0
+  visual.style = 0
 
   // Configure appsrc
   const audioInfo = new GstAudio.AudioInfo()
   audioInfo.setFormat(GstAudio.AudioFormat.S16, SAMPLE_RATE, 1)
   const audioCaps = audioInfo.toCaps()
   console.log(audioCaps.toString())
-  gi._c.ObjectPropertySetter(appsrc, 'caps', audioCaps)
-  gi._c.ObjectPropertySetter(appsrc, 'format', Gst.Format.TIME)
+  appsrc.caps = audioCaps
+  appsrc.format = Gst.Format.TIME
   appsrc.on('need-data', size => {
     if (sourceId !== 0) return
     console.log('Start feeding.')
@@ -94,10 +110,10 @@ function main() {
     GLib.sourceRemove(sourceId)
     sourceId = 0
   })
-  
+
   // Configure appsink
-  gi._c.ObjectPropertySetter(appsink, 'emit-signals', true)
-  gi._c.ObjectPropertySetter(appsink, 'caps', audioCaps)
+  appsink.emitSignals = true
+  appsink.caps = audioCaps
   appsink.on('new-sample', () => {
     const sample = appsink.emit('pull-sample')
     if (sample) {
@@ -121,17 +137,17 @@ function main() {
   pipeline.add(appqueue)
   pipeline.add(appsink)
 
-
   // Link all elements that can be automatically linked because they have "Always" pads
-  const isLinked = (
-    appsrc.link(tee)
-  ) && (
-    aqueue.link(aconvert1) && aconvert1.link(aresample) && aresample.link(asink)
-  ) && (
-    vqueue.link(aconvert2) && aconvert2.link(visual) && visual.link(vconvert) && vconvert.link(vsink)
-  ) && (
+  const isLinked =
+    appsrc.link(tee) &&
+    aqueue.link(aconvert1) &&
+    aconvert1.link(aresample) &&
+    aresample.link(asink) &&
+    vqueue.link(aconvert2) &&
+    aconvert2.link(visual) &&
+    visual.link(vconvert) &&
+    vconvert.link(vsink) &&
     appqueue.link(appsink)
-  )
   if (!isLinked) {
     console.error('Elements could not be linked.')
     return
@@ -150,11 +166,10 @@ function main() {
   console.log(`Obtained request pad ${teeAppPad.getName()} for app branch.`)
   const queueAppPad = appqueue.getStaticPad('sink')
 
-  const padsLinked = (
+  const padsLinked =
     teeAudioPad.link(queueAudioPad) === Gst.PadLinkReturn.OK &&
     teeVideoPad.link(queueVideoPad) === Gst.PadLinkReturn.OK &&
     teeAppPad.link(queueAppPad) === Gst.PadLinkReturn.OK
-  )
   if (!padsLinked) {
     console.error('Tee could not be linked.')
     return

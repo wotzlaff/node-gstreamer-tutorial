@@ -4,7 +4,6 @@ const gi = require('node-gtk')
 const Gst = gi.require('Gst', '1.0')
 gi.startLoop()
 
-
 let duration = Gst.CLOCK_TIME_NONE
 let terminate = false
 let playing = false
@@ -17,7 +16,7 @@ let playbin = null
 // Initialize GStreamer
 Gst.init()
 
-function main() {
+function main () {
   // Create the elements
   playbin = Gst.ElementFactory.make('playbin')
   if (!playbin) {
@@ -26,7 +25,8 @@ function main() {
   }
 
   // Set the URI to play
-  gi._c.ObjectPropertySetter(playbin, 'uri', 'https://www.freedesktop.org/software/gstreamer-sdk/data/media/sintel_trailer-480p.webm')
+  playbin.uri =
+    'https://www.freedesktop.org/software/gstreamer-sdk/data/media/sintel_trailer-480p.webm'
 
   // Start playing
   if (playbin.setState(Gst.State.PLAYING) === Gst.State.CHANGE_FAILURE) {
@@ -37,7 +37,13 @@ function main() {
   // Listen to the bus
   const bus = playbin.getBus()
   while (!terminate) {
-    const msg = bus.timedPopFiltered(100 * Gst.MSECOND, Gst.MessageType.STATE_CHANGED | Gst.MessageType.ERROR | Gst.MessageType.EOS | Gst.MessageType.DURATION_CHANGED)
+    const msg = bus.timedPopFiltered(
+      100 * Gst.MSECOND,
+      Gst.MessageType.STATE_CHANGED |
+        Gst.MessageType.ERROR |
+        Gst.MessageType.EOS |
+        Gst.MessageType.DURATION_CHANGED
+    )
     if (msg) {
       handleMessage(msg)
     } else {
@@ -65,7 +71,11 @@ function main() {
       // If seeking is enabled, we have not done it yet, and the time is right, seek
       if (seekEnabled && !seekDone && current > 10 * Gst.SECOND) {
         console.log('Reached 10s, performing seek...')
-        playbin.seekSimple(Gst.Format.TIME, Gst.SeekFlags.FLUSH | Gst.SeekFlags.KEY_UNIT, 30 * Gst.SECOND)
+        playbin.seekSimple(
+          Gst.Format.TIME,
+          Gst.SeekFlags.FLUSH | Gst.SeekFlags.KEY_UNIT,
+          30 * Gst.SECOND
+        )
         seekDone = true
       }
     }
@@ -74,7 +84,7 @@ function main() {
   playbin.setState(Gst.State.NULL)
 }
 
-function handleMessage(msg) {
+function handleMessage (msg) {
   switch (msg.type) {
     case Gst.MessageType.ERROR:
       console.log('Got error.')
@@ -92,12 +102,17 @@ function handleMessage(msg) {
     case Gst.MessageType.STATE_CHANGED:
       if (msg.src === playbin) {
         const [oldState, newState, pendingState] = msg.parseStateChanged()
-        console.log(`Pipeline state changed from ${Gst.Element.stateGetName(oldState)} to ${Gst.Element.stateGetName(newState)}.`)
+        console.log(
+          `Pipeline state changed from ${Gst.Element.stateGetName(
+            oldState
+          )} to ${Gst.Element.stateGetName(newState)}.`
+        )
         playing = newState === Gst.State.PLAYING
         if (playing) {
           const query = Gst.Query.newSeeking(Gst.Format.TIME)
           if (playbin.query(query)) {
-            const [_format, seekEnabledValue, startTime, endTime] = query.parseSeeking(null)
+            const [_format, seekEnabledValue, startTime, endTime] =
+              query.parseSeeking(null)
             seekEnabled = seekEnabledValue
             if (seekEnabled) {
               console.log(`Seeking is ENABLED from ${startTime} to ${endTime}`)

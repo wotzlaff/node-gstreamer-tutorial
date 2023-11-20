@@ -7,7 +7,7 @@ gi.startLoop()
 // Initialize GStreamer
 Gst.init()
 
-function main() {
+function main () {
   // Create the elements
   const asrc = Gst.ElementFactory.make('audiotestsrc')
   const tee = Gst.ElementFactory.make('tee')
@@ -23,16 +23,28 @@ function main() {
   // Create the empty pipeline
   const pipeline = new Gst.Pipeline()
 
-  if (!asrc || !tee || !aqueue || !aconvert || !aresample || !asink || !vqueue || !visual || !vconvert || !vsink || !pipeline) {
+  if (
+    !asrc ||
+    !tee ||
+    !aqueue ||
+    !aconvert ||
+    !aresample ||
+    !asink ||
+    !vqueue ||
+    !visual ||
+    !vconvert ||
+    !vsink ||
+    !pipeline
+  ) {
     console.error('Not all elements could be created.')
     return
   }
 
   // Configure elements
   // TODO: use non-internal setters?
-  gi._c.ObjectPropertySetter(asrc, 'freq', 215.0)
-  gi._c.ObjectPropertySetter(visual, 'shader', 0)
-  gi._c.ObjectPropertySetter(visual, 'style', 1)
+  asrc.freq = 215.0
+  visual.shader = 0
+  visual.style = 1
 
   pipeline.add(asrc)
   pipeline.add(tee)
@@ -46,7 +58,15 @@ function main() {
   pipeline.add(vsink)
 
   // Link all elements that can be automatically linked because they have "Always" pads
-  if (!asrc.link(tee) || !aqueue.link(aconvert) || !aconvert.link(aresample) || !aresample.link(asink) || !vqueue.link(visual) || !visual.link(vconvert) || !vconvert.link(vsink)) {
+  if (
+    !asrc.link(tee) ||
+    !aqueue.link(aconvert) ||
+    !aconvert.link(aresample) ||
+    !aresample.link(asink) ||
+    !vqueue.link(visual) ||
+    !visual.link(vconvert) ||
+    !vconvert.link(vsink)
+  ) {
     console.error('Elements could not be linked.')
     return
   }
@@ -58,7 +78,10 @@ function main() {
   const teeVideoPad = tee.getRequestPad('src_%u')
   console.log(`Obtained request pad ${teeVideoPad.getName()} for video branch.`)
   const queueVideoPad = vqueue.getStaticPad('sink')
-  if (teeAudioPad.link(queueAudioPad) !== Gst.PadLinkReturn.OK || teeVideoPad.link(queueVideoPad) !== Gst.PadLinkReturn.OK) {
+  if (
+    teeAudioPad.link(queueAudioPad) !== Gst.PadLinkReturn.OK ||
+    teeVideoPad.link(queueVideoPad) !== Gst.PadLinkReturn.OK
+  ) {
     console.error('Tee could not be linked.')
     return
   }
@@ -68,7 +91,10 @@ function main() {
 
   // Wait until error or EOS
   const bus = pipeline.getBus()
-  const msg = bus.timedPopFiltered(Gst.CLOCK_TIME_NONE, Gst.MessageType.ERROR | Gst.MessageType.EOS)
+  const msg = bus.timedPopFiltered(
+    Gst.CLOCK_TIME_NONE,
+    Gst.MessageType.ERROR | Gst.MessageType.EOS
+  )
 
   // Release the request pads from the tee
   tee.releaseRequestPad(teeAudioPad)
